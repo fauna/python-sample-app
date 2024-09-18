@@ -20,10 +20,47 @@ def list_products():
         queryFragment = ''
 
         if category is not None:
-          queryFragment = fql('Product.byCategory(Category.byName(${category}).first())', category=category)
+          queryFragment = fql(
+            '''
+            Product.byCategory(Category.byName(${category}).first()).pageSize(${pageSize})
+            .map(product => {
+                    let product: Any = product
+                    let category: Any = product.category
+                    {
+                        id: product.id,
+                        name: product.name,
+                        description: product.description,
+                        price: product.price,
+                        stock: product.stock,
+                        category: {
+                            id: category.id,
+                            name: category.name,
+                            description: category.description
+                        }
+                    }
+              })
+            ''', category=category, pageSize=pageSize)
         else:
-          queryFragment = fql('Product.byCategory(Category.byName(${category}).first()).pageSize(${pageSizeNumber})', pageSizeNumber=pageSize)
-
+          queryFragment = fql('''
+            Product.sortedByCategory().pageSize(${pageSize})
+            .map(product => {
+                let product: Any = product
+                let category: Any = product.category
+                {
+                    id: product.id,
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                    stock: product.stock,
+                    category: {
+                        id: category.id,
+                        name: category.name,
+                        description: category.description
+                    }
+                }
+            })  
+          ''', 
+          pageSize=pageSize)
         res = client.query(fql('''
           ${queryFragment}                    
         ''', queryFragment=queryFragment))
@@ -31,17 +68,8 @@ def list_products():
         # Extract the data and the nextToken from the response
         page = res.data
 
-        # Extract the 'data' attribute from each Document
-        results = []
-        for product in page:
-          # Convert the Document object to a dictionary
-          results.append({
-            'id': product.id,
-            'name': product.get('name'),
-            'description': product.get('description'),
-            'price': product.get('price'),
-            'stock': product.get('stock')
-          })
+        # # Extract the 'data' attribute from each Document
+        results = page.data
 
         return jsonify({'data': results })
     except FaunaException as e:
