@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from controllers.product_controller import list_products, create_product
+from controllers.product_controller import list_products, create_product, update_product
 
 products = Blueprint('products', __name__)
 
@@ -23,3 +23,7 @@ def listroducts():
 @products.route('/products', methods=['POST'])
 def new_product():
   return create_product()
+
+@products.route('/products/<id>', methods=['PATCH'])
+def edit_product(id):
+  return update_product(id)

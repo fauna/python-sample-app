@@ -57,6 +57,7 @@ def create_product():
         print(doc)
 
         result = {}
+        result['id'] = doc.id
         for key in doc:
             if key != 'category':
               result[key] = doc[key]
@@ -138,3 +139,96 @@ def list_products():
     except FaunaException as e:
         # Handle Fauna exceptions
         return jsonify({'error': str(e)}), 500
+
+
+# TODO: Fix the FQL query to update the product
+def update_product(id):
+    # Extract fields from the request body
+    data = request.get_json()
+    name = data.get('name')
+    price = data.get('price')
+    description = data.get('description')
+    stock = data.get('stock')
+    category_name = data.get('category')
+
+    # Validate that the required fields are provided
+    if all([price is None, description is None, stock is None, name is None, category_name is None]):
+        return jsonify({'message': 'No fields to update provided.'}), 400
+
+    # Convert price and stock to appropriate types, if they are provided
+    try:
+        if price is not None:
+            price = int(price)
+        if stock is not None:
+            stock = int(stock)
+    except ValueError:
+        return jsonify({'message': 'Price must be a number and stock must be an integer.'}), 400
+    
+    print(id)
+
+    try:
+        # Construct the query to update the product in Fauna
+        query = fql(
+            '''
+            let product = Product.byId(${id})!
+            let category = if (${category_name} != null) {
+                let cat = Category.byName(${category_name}).first()
+                if (cat == null) abort("Category does not exist.")
+                cat
+            } else {
+                product.category
+            }
+
+            let fields = {}
+            if (${name} != null) fields.name = ${name}
+            if (${price} != null) fields.price = ${price}
+            if (${description} != null) fields.description = ${description}
+            if (${stock} != null) fields.stock = ${stock}
+
+            if (category != null) fields.category = category
+
+            product.update(fields)
+            product {
+                id,
+                name,
+                price,
+                description,
+                stock,
+                category {
+                    id,
+                    name,
+                    description
+                }
+            }
+            ''',
+            id=id,
+            name=name,
+            price=price,
+            description=description,
+            stock=stock,
+            category_name=category_name,
+
+        )
+
+        # Execute the query
+        res: QuerySuccess = client.query(query)
+        product = res.data
+
+        print(product)
+
+        # Update the product fields if they are provided
+
+
+        # Return the updated product
+        return jsonify({ id: product.id }), 200
+
+    except FaunaException as e:
+        # Handle Fauna exceptions
+        if 'document_not_found' in str(e):
+            return jsonify({'message': f"No product with id '{id}' exists."}), 404
+        elif 'Category does not exist' in str(e):
+            return jsonify({'message': 'Category does not exist.'}), 400
+        elif 'constraint_failure' in str(e):
+            return jsonify({'message': 'A product with that name already exists.'}), 409
+        else:
+            return jsonify({'error': str(e)}), 500
