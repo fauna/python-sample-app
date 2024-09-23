@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify
 from controllers.product_controller import list_products, create_product, update_product
+from controllers.order_controller import get_order_by_id, get_or_create_cart
 
 products = Blueprint('products', __name__)
-
+orders = Blueprint('orders', __name__)
 
 """
 
@@ -27,3 +28,11 @@ def new_product():
 @products.route('/products/<id>', methods=['PATCH'])
 def edit_product(id):
   return update_product(id)
+
+@orders.route('/orders/<id>', methods=['GET'])
+def order_by_id(id):
+  return get_order_by_id(id)
+
+@orders.route('/customers/<id>/cart', methods=['POST'])
+def create_or_get_cart(id):
+    return jsonify({'message': 'Not implemented'}), 501
