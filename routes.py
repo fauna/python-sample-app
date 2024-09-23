@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from controllers.product_controller import list_products, create_product, update_product
 from controllers.order_controller import get_order_by_id, update_order
-from controllers.customer_controller import get_or_create_cart, add_item_to_cart
+from controllers.customer_controller import get_or_create_cart, add_item_to_cart, get_customer_orders
 
 products = Blueprint('products', __name__)
 orders = Blueprint('orders', __name__)
@@ -46,3 +46,7 @@ def create_or_get_cart(id):
 @customers.route('/customers/<id>/cart/item', methods=['POST'])
 def add_to_cart(id):
     return add_item_to_cart(id)
+
+@customers.route('/customers/<id>/orders', methods=['GET'])
+def get_customer_orders_route(id):
+    return get_customer_orders(id)
