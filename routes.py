@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from controllers.product_controller import list_products
+from controllers.product_controller import list_products, create_product
 
 products = Blueprint('products', __name__)
 
@@ -19,3 +19,7 @@ page size of 10. If a nextToken is provided, return the next page of products co
 @products.route('/products', methods=['GET'])
 def listroducts():
   return list_products()
+
+@products.route('/products', methods=['POST'])
+def new_product():
+  return create_product()
