@@ -5,6 +5,15 @@ on:
 
 jobs:
   validate:
+    strategy:
+      matrix:
+        # Run in all these versions of Python
+        # current and last three python versions
+        python-version:
+          - "3.12"
+          - "3.11"
+          - "3.10"
+          - "3.9"
     runs-on: ubuntu-latest
     services:
       fauna:
@@ -15,11 +24,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: corretto
       - name: Install fauna-shell
         run:
           npm install -g fauna-shell
@@ -28,7 +32,6 @@ jobs:
 
       - name: Test sample app
         run: |
-          ./gradlew build
-          FAUNA_ENDPOINT=http://localhost:8443 FAUNA_SECRET=`cat .fauna_key` ./gradlew bootRun > bootrun.log 2>&1  &
+          FAUNA_ENDPOINT=http://localhost:8443 FAUNA_SECRET=`cat .fauna_key` python3 app.py > app.log 2>&1  &
           ./test/validate.sh
           cat bootrun.log
