@@ -1,0 +1,16 @@
+let customer = Customer.byEmail('fake@fauna.com').first()!
+['cart', 'processing', 'shipped', 'delivered'].map(status => {
+  let order: Any = Order.byCustomer(customer).firstWhere(o => o.status == status)
+    if (order == null) {
+      let newOrder: Any = Order.create({
+        customer: customer,
+        status: status,
+        createdAt: Time.now(), payment: {}
+      })
+
+      let product: Any = Product.byName('Drone').first()!
+      let orderItem: Any = OrderItem.create( {order: newOrder, product: product, quantity: 1 })
+      orderItem
+      newOrder
+    } else { order }
+})
