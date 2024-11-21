@@ -225,6 +225,7 @@ def update_product(id):
         return jsonify({ id: product.id }), 200
 
     except FaunaException as e:
+        # TODO: Actually handle exceptions, not strings here :)
         # Handle Fauna exceptions
         if 'document_not_found' in str(e):
             return jsonify({'message': f"No product with id '{id}' exists."}), 404
