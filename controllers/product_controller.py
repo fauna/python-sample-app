@@ -1,3 +1,5 @@
+import urllib
+
 from flask import jsonify, request
 from fauna import fql
 from fauna.client import Client
