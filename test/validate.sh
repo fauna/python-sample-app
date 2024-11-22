@@ -7,7 +7,6 @@ CONTENT="Content-Type: application/json"
 curl --silent -H "$ACCEPT" -H "$CONTENT" --retry-all-errors \
     --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 10 --retry-max-time 60 \
     "$ENDPOINT/products?pageSize=1" > page_one.json
-cat one.json
 
 AFTER=`jq '.after | .token' page_one.json | xargs`
 
