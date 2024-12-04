@@ -1,4 +1,5 @@
 #! /bin/sh
+set -e
 
 DB_NAME="ECommerceJava"
 LOCAL_ENDPOINT="http://localhost:8443/"
