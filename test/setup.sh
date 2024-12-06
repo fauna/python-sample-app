@@ -1,7 +1,7 @@
 #! /bin/sh
 set -e
 
-DB_NAME="ECommerceJava"
+DB_NAME="ECommercePython"
 LOCAL_ENDPOINT="http://localhost:8443/"
 SECRET="secret"
 
@@ -17,7 +17,7 @@ fauna environment add --name local --endpoint local --database $DB_NAME -y
 fauna environment select local
 fauna eval "Key.create({ role: 'server' }).secret" | xargs > .fauna_key
 
-fauna schema push -y --active --dir schema
+fauna schema push -y --active --dir=schema
 
 fauna import --collection Category --path seed/categories.json
 fauna import --collection Customer --path seed/customers.json

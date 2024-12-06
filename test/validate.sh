@@ -1,32 +1,25 @@
 #! /bin/sh
 set -e
 
-ENDPOINT="http://localhost:8080"
+ENDPOINT="http://127.0.0.1:5000"
 ACCEPT="Accept: application/json"
 CONTENT="Content-Type: application/json"
 
-curl --silent -H "$ACCEPT" -H "$CONTENT" \
+
+PAGE_ONE=`curl --silent -H "$ACCEPT" -H "$CONTENT" \
     --retry-all-errors \
     --connect-timeout 5 \
     --max-time 10 \
     --retry 5 \
     --retry-delay 10 \
     --retry-max-time 60 \
-    "$ENDPOINT/products?pageSize=1" > page_one.json
+    "$ENDPOINT/products?pageSize=3"`
 
-AFTER=`jq '.after | .token' page_one.json | xargs`
+AFTER=`echo $PAGE_ONE | jq '.next' | xargs`
 
-curl --silent -H "$ACCEPT" -H "$CONTENT" --silent \
-    "$ENDPOINT/products?pageSize=1&afterToken=$AFTER" > page_two.json
+echo $AFTER
 
-jq '.data | .[] | .name' page_two.json
+CUSTOMER_ID=`curl --silent -H "$ACCEPT" -H "$CONTENT" "$ENDPOINT/customers/fake%40fauna.com?key=email" | jq '.id' | xargs`
 
-curl --silent -H "$ACCEPT" -H "$CONTENT" "$ENDPOINT/products/search?minPrice=1000&maxPrice=10000" > search.json
-
-jq '.data | .[] | .name' search.json
-
-NEW_PRODUCT="{ \"name\": \"Coolest toy\", \"description\": \"All the cool kids have one.\",
-               \"category\": \"electronics\", \"price\": 9999, \"stock\": 99 }"
-
-# curl --silent -H "$ACCEPT" -H "$CONTENT" -X POST "$ENDPOINT/products" -d "$NEW_PRODUCT"
+curl --silent -H "$ACCEPT" -H "$CONTENT" -X POST "$ENDPOINT/customers/$CUSTOMER_ID/cart"
 
