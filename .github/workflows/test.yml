@@ -40,6 +40,6 @@ jobs:
 
     - name: Test sample app
       run: |
-        FAUNA_ENDPOINT=http://localhost:8443 FAUNA_SECRET=`cat .fauna_key` python3 app.py > app.log 2>&1  &
+        FAUNA_ENDPOINT=http://localhost:8443 FAUNA_SECRET=`cat .fauna_key` python3 ecommerce_app/app.py > app.log 2>&1  &
         ./test/validate.sh
         cat app.log
