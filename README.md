@@ -122,7 +122,7 @@ docs](https://docs.fauna.com/fauna/current/tools/shell/).
     * `schema` as the schema directory.
     * `dev` as the environment name.
     * The default endpoint.
-    * `ECommerce` as the database.
+    * `ECommercePython` as the database.
 
 6.  Push the `.fsl` files in the `schema` directory to the `ECommercePython`
     database:
