@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from fauna import fql
 from fauna.query import Query
