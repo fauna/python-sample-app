@@ -6,7 +6,7 @@ from fauna.encoding import QuerySuccess
 # Initialize Fauna client
 client = Client()
 
-def get_order_by_id(identity):
+def get_order_by_id(order_id):
     query = fql(
         '''
         let order = Order.byId(${id})!
@@ -39,7 +39,7 @@ def get_order_by_id(identity):
           }),
         }
         ''',
-        id=id
+        id=order_id
     )
 
     # Execute the query
@@ -48,7 +48,7 @@ def get_order_by_id(identity):
     return jsonify(success.data), 200
 
 
-def update_order(id):
+def update_order(order_id):
     # Extract status and payment fields from the request body
     data = request.get_json()
     status = data.get('status')
@@ -100,7 +100,7 @@ def update_order(id):
             }
         }
         ''',
-        id=id,
+        id=order_id,
         status=status,
         payment=payment
     )

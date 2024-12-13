@@ -49,7 +49,7 @@ def create_product():
     return jsonify(res.data), 201
 
 
-def update_product(identity):
+def update_product(product_id):
     # Extract fields from the request body
     data = request.get_json()
     fields = {}
@@ -77,7 +77,7 @@ def update_product(identity):
         product.update(fields)
         ${toProduct}
         ''',
-        id=identity,
+        id=product_id,
         fields=fields,
         toProduct=to_product(),
         category_name=category_name,
