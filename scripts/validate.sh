@@ -1,7 +1,7 @@
 #! /bin/sh
 set -e
 
-ENDPOINT="http://127.0.0.1:5000"
+ENDPOINT="http://localhost:5000"
 ACCEPT="Accept: application/json"
 CONTENT="Content-Type: application/json"
 
