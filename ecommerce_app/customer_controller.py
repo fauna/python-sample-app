@@ -1,3 +1,5 @@
+import dataclasses
+
 from flask import jsonify, request
 from fauna import fql
 from fauna.client import Client
@@ -5,8 +7,27 @@ from fauna.errors import FaunaException
 from fauna.encoding import QuerySuccess
 import urllib.parse
 
+from ecommerce_app.models.customer import Address, to_customer
+
 # Initialize Fauna client
 client = Client(typecheck=False)
+
+
+def create_customer():
+    customer_data = request.get_json()
+    required = set(('name', 'email', 'address'))
+    difference = required - set(customer_data.keys())
+    if difference:
+        return jsonify({'message': f'Missing required field(s) {difference}'}), 400
+    try:
+        Address(**customer_data['address'])
+    except TypeError:
+        diff = set([field.name for field in dataclasses.fields(Address)]) - set(customer_data['address'].keys())
+        return jsonify({'message': f'Missing required field(s) {diff}'})
+    success = client.query(fql('let customer = Customer.create(${new_customer})\n${to_customer}',
+                               new_customer=customer_data, to_customer=to_customer()))
+    return jsonify(success.data), 201
+
 
 def add_item_to_cart(customer_id):
     # Extract product name and quantity from the request body
@@ -58,7 +79,6 @@ def add_item_to_cart(customer_id):
 
     # Execute the query
     res: QuerySuccess = client.query(query)
-    print(res.data)
 
     # Return the updated cart as JSON
     return jsonify(res.data), 200

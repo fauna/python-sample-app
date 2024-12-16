@@ -6,7 +6,7 @@ from fauna.encoding import QuerySuccess
 from fauna.errors import AbortError
 from flask import Blueprint, jsonify, request, Response
 
-from ecommerce_app.customer_controller import add_item_to_cart, get_or_create_cart
+from ecommerce_app.customer_controller import add_item_to_cart, get_or_create_cart, create_customer
 from ecommerce_app.models.customer import Customer, to_customer
 from ecommerce_app.models.order import Order, to_order
 from ecommerce_app.models.product import Product, to_product
@@ -88,11 +88,15 @@ def order_by_id(identity):
 
 
 @orders.route('/orders/<identity>', methods=['PATCH'])
-def update_order_by_id(identity):
+def update_order_by_id(identity: str):
     """Update an orders status, and optionally the payment method.
     The valid status transitions are defined in collections.fsl.
     """
     return update_order(identity)
+
+@customers.route('/customers', methods=['POST'])
+def new_customer():
+    return create_customer()
 
 
 @customers.route('/customers/<identity>/cart', methods=['POST'])
