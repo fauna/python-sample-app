@@ -163,7 +163,8 @@ docs](https://docs.fauna.com/fauna/current/tools/shell/).
 The app runs an HTTP API server. From the root directory, run:
 
 ```sh
-FAUNA_SECRET=<secret> python ecommerce_app/app.py
+cd ecommerce_app
+FAUNA_SECRET=<secret> python -m flask run
 ```
 
 Once started, the local server is available at http://localhost:5000
