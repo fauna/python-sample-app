@@ -169,7 +169,7 @@ FAUNA_SECRET=<secret> python -m flask run
 
 Once started, the local server is available at http://localhost:5000
 
-The script `./tests/validate.sh` has some example HTTP requests.
+The script `./scripts/validate.sh` has some example HTTP requests.
 
 
 ## Make HTTP API requests
