@@ -164,7 +164,7 @@ The app runs an HTTP API server. From the root directory, run:
 
 ```sh
 cd ecommerce_app
-FAUNA_SECRET=<secret> python -m flask run
+FAUNA_SECRET=<secret> python3 -m flask run
 ```
 
 Once started, the local server is available at http://localhost:5000
@@ -177,11 +177,11 @@ The script `./scripts/validate.sh` has some example HTTP requests.
 ```
 
 You can use the endpoints to make API requests that read and write data from
-the `ECommerce` database.
+the `ECommercePython` database.
 
 For example, with the local server running in a separate terminal tab, run the
 following curl request to the `POST /customers` endpoint. The request creates a
-`Customer` collection document in the `ECommerce` database.
+`Customer` collection document in the `ECommercePython` database.
 
 curl -v \
   http://localhost:5000/customers \
