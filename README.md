@@ -169,9 +169,6 @@ FAUNA_SECRET=<secret> python3 -m flask run
 
 Once started, the local server is available at http://localhost:5000
 
-The script `./scripts/validate.sh` has some example HTTP requests.
-
-
 ## Make HTTP API requests
 
 ```
@@ -202,9 +199,20 @@ curl -v \
 You can view the documents for the collection in the [Fauna
 Dashboard](https://dashboard.fauna.com/).
 
-## Run tests
-
-Python unit tests:
+## Run unit tests
+Some example unit tests in the `tests/` directory show how you can test a Python Flask app that uses Fauna.
 ```sh
 python3 -m unittest discover -s tests
 ```
+
+## Seed some data
+If you want to seed some data in your app, you can do the following (also see `scripts/setup.sh`):
+
+```sh
+fauna import --collection Category --path seed/categories.json
+fauna import --collection Customer --path seed/customers.json
+fauna eval --file seed/products.fql
+fauna eval --file seed/orders.fql
+```
+
+If you've seeded the DB, then you can run `source scripts/validate.sh`
