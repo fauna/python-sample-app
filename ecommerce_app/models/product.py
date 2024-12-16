@@ -18,4 +18,4 @@ class Product:
 
 def to_product() -> Query:
     return fql("{id: product.id, name: product.name, description: product.description, stock: product.stock, price: product.price, category: ${category}}",
-               category=fql("{id: product.category.id, name: product.category.name}"))
+               category=fql("if (product.category != null) {id: product.category?.id, name: product.category?.name} else null"))
