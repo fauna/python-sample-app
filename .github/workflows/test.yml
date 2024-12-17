@@ -43,5 +43,5 @@ jobs:
         cd ecommerce_app
         FAUNA_ENDPOINT=http://localhost:8443 FAUNA_SECRET=`cat ../.fauna_key` python3 -m flask run > ../app.log 2>&1  &
         cd ..
-        ./scripts/validate.sh
+        ./scripts/smoke_test.sh
         cat app.log

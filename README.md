@@ -215,4 +215,4 @@ fauna eval --file seed/products.fql
 fauna eval --file seed/orders.fql
 ```
 
-If you've seeded the DB, then you can run `source scripts/validate.sh`
+If you've seeded the DB, then you can run `source scripts/smoke_test.sh`
