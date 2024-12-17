@@ -15,11 +15,11 @@ PAGE_ONE=`curl --silent -H "$ACCEPT" -H "$CONTENT" \
     --retry-max-time 60 \
     "$ENDPOINT/products?pageSize=3"`
 
-AFTER=`echo $PAGE_ONE | jq '.next' | xargs`
+AFTER=`echo $PAGE_ONE | jq '.next' -r`
 
 echo $AFTER
 
-CUSTOMER_ID=`curl --silent -H "$ACCEPT" -H "$CONTENT" "$ENDPOINT/customers/fake%40fauna.com?key=email" | jq '.id' | xargs`
+CUSTOMER_ID=`curl --silent -H "$ACCEPT" -H "$CONTENT" "$ENDPOINT/customers/fake%40fauna.com?key=email" | jq '.id' -r`
 
 curl --silent -H "$ACCEPT" -H "$CONTENT" -X POST "$ENDPOINT/customers/$CUSTOMER_ID/cart"
 
