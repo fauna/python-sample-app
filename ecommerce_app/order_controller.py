@@ -3,44 +3,13 @@ from fauna import fql
 from fauna.client import Client
 from fauna.encoding import QuerySuccess
 
+from ecommerce_app.models.order import order_response
+
 # Initialize Fauna client
 client = Client()
 
 def get_order_by_id(order_id):
-    query = fql(
-        '''
-        let order = Order.byId(${id})!
-        {
-          id: order.id,
-          payment: order.payment,
-          createdAt: order.createdAt.toString(),
-          status: order.status,
-          total: order.total,
-          customer: {
-            id: order.customer?.id,
-            name: order.customer?.name,
-            email: order.customer?.email,
-            address: order.customer?.address
-          },
-          items: order.items.toArray().map(item => {
-            product: {
-                id: item.product?.id,
-                name: item.product?.name,
-                price: item.product?.price,
-                description: item.product?.description,
-                stock: item.product?.stock,
-                category: {
-                  id: item.product?.category?.id,
-                  name: item.product?.category?.name,
-                  description: item.product?.category?.description
-                }
-            },
-            quantity: item.quantity
-          }),
-        }
-        ''',
-        id=order_id
-    )
+    query = fql("let order = Order.byId(${id})!\n${orderResponse}", id=order_id, orderResponse=order_response())
 
     # Execute the query
     success: QuerySuccess = client.query(query)
@@ -71,38 +40,9 @@ def update_order(order_id):
             status: ${status},
             payment: ${payment}
         })
-        {
-            id: order?.id,
-            payment: order?.payment,
-            createdAt: order?.createdAt.toString(),
-            status: order?.status,
-            total: order?.total,
-            items: order?.items.toArray().map(item => {
-                product: {
-                    id: item.product?.id,
-                    name: item.product?.name,
-                    price: item.product?.price,
-                    description: item.product?.description,
-                    stock: item.product?.stock,
-                    category: {
-                        id: item.product?.category?.id,
-                        name: item.product?.category?.name,
-                        description: item.product?.category?.description
-                    }
-                },
-                quantity: item.quantity
-            }),
-            customer: {
-                id: order?.customer?.id,
-                name: order?.customer?.name,
-                email: order?.customer?.email,
-                address: order?.customer?.address
-            }
-        }
+        ${orderResponse}
         ''',
-        id=order_id,
-        status=status,
-        payment=payment
+        id=order_id, status=status, payment=payment, orderResponse=order_response()
     )
 
     # Execute the query

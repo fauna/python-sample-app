@@ -25,6 +25,6 @@ class Customer:
     cart: Optional[Order]
 
 
-def to_customer() -> Query:
+def customerResponse() -> Query:
     return fql("{id: customer.id, name: customer.name, email: customer.email, address: customer.address, cart: ${getCart}}",
                getCart=fql('if (customer.cart != null) {id: customer.cart?.id} else null'))
