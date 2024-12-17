@@ -1,11 +1,11 @@
 #! /bin/sh
+set -e
 
-DB_NAME="ECommerceJava"
+DB_NAME="ECommercePython"
 LOCAL_ENDPOINT="http://localhost:8443/"
 SECRET="secret"
 
-cp ./test/local-project .fauna-project
-echo "Copied .fauna-project"
+touch .fauna-project
 
 fauna endpoint add local -y --set-default --url "$LOCAL_ENDPOINT" --secret "$SECRET"
 echo "Added local endpoint"
@@ -17,14 +17,7 @@ fauna environment add --name local --endpoint local --database $DB_NAME -y
 fauna environment select local
 fauna eval "Key.create({ role: 'server' }).secret" | xargs > .fauna_key
 
-fauna schema push -y
-
-OUTPUT="";
-while [ `echo $OUTPUT | grep -c "Staged status: ready"` = 0 ]; do
-  OUTPUT=`fauna schema status`;
-done
-
-fauna schema commit -y
+fauna schema push -y --active --dir=schema
 
 fauna import --collection Category --path seed/categories.json
 fauna import --collection Customer --path seed/customers.json

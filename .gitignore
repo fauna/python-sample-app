@@ -1,1 +1,12 @@
 myenv/
+venv/
+.idea/*
+
+__pycache__/*
+*/__pycache__/*
+**/__pycache__
+
+**/.DS_Store
+
+**/.env
+.fauna_project

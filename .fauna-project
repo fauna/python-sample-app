@@ -1,5 +1,0 @@
-default=dev
-
-[environment.python-fauna]
-endpoint=cloud-us
-database=pythonApp
