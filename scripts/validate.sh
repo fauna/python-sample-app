@@ -1,4 +1,6 @@
 #! /bin/sh
+# This script is to smoke test that the sample app works, it needs to be run after some data has been seeded
+# (see setup.sh).
 set -e
 
 ENDPOINT="http://localhost:5000"
