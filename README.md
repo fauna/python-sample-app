@@ -94,8 +94,7 @@ To run the app, you'll need:
     # 'us' (United States), 'eu' (Europe), or `global`.
     fauna database create \
       --name ECommercePython \
-      --database us \
-      --no-typechecked
+      --database us
     ```
 
 5.  Push the `.fsl` files in the `schema` directory to the `ECommercePython`
@@ -273,8 +272,8 @@ Customer documents and related API responses:
 
 
     def customerResponse() -> Query:
-    +   return fql("{id: customer.id, name: customer.name, email: customer.email, address: customer.address, cart: ${getCart}, totalPurchaseAmt: customer.totalPurchaseAmt}",
-                  getCart=fql('if (customer.cart != null) {id: customer.cart?.id} else null'))
+    +    return fql("{id: customer.id, name: customer?.name, email: customer?.email, address: customer?.address, cart: ${getCart}, totalPurchaseAmt: customer?.totalPurchaseAmt}",
+                  getCart=fql('if (customer?.cart != null) {id: customer?.cart?.id} else null'))
     ```
 
     Save `src/routes/customers/customers.controller.ts`.

@@ -26,5 +26,5 @@ class Customer:
 
 
 def customerResponse() -> Query:
-    return fql("{id: customer.id, name: customer.name, email: customer.email, address: customer.address, cart: ${getCart}}",
-               getCart=fql('if (customer.cart != null) {id: customer.cart?.id} else null'))
+    return fql("{id: customer.id, name: customer?.name, email: customer?.email, address: customer?.address, cart: ${getCart}}",
+               getCart=fql('if (customer?.cart != null) {id: customer?.cart?.id} else null'))
