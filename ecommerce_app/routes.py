@@ -7,9 +7,9 @@ from fauna.errors import AbortError
 from flask import Blueprint, jsonify, request, Response
 
 from ecommerce_app.customer_controller import add_item_to_cart, get_or_create_cart, create_customer
-from ecommerce_app.models.customer import Customer, customerResponse
+from ecommerce_app.models.customer import Customer, customer_response
 from ecommerce_app.models.order import Order, order_summary
-from ecommerce_app.models.product import Product, to_product
+from ecommerce_app.models.product import Product, product_response
 from ecommerce_app.order_controller import get_order_by_id, update_order
 from ecommerce_app.product_controller import create_product, update_product
 
@@ -39,7 +39,7 @@ def get_products():
     if nextToken:
         success: QuerySuccess = client.query(fql(
             "Set.paginate(${nextToken}).map(product => ${toProduct}",
-            nextToken=nextToken, toProduct=to_product()))
+            nextToken=nextToken, toProduct=product_response()))
         # Data is a dict not a page here.
         return jsonify_page(success.data['data'], success.data['after'], Product), 200
     elif category:
@@ -47,12 +47,12 @@ def get_products():
         success: QuerySuccess = client.query(fql(
             "Product.byCategory(${category}).pageSize(${pageSize}).map(product => ${toProduct})",
             category=categoryQuery,
-            pageSize=pageSize, toProduct=to_product()))
+            pageSize=pageSize, toProduct=product_response()))
         return jsonify_page(success.data.data, success.data.after, Product), 200
     else:
         success: QuerySuccess = client.query(fql(
             "Product.sortedByCategory().pageSize(${pageSize}).map(product => ${toProduct})",
-            pageSize=pageSize, toProduct=to_product()))
+            pageSize=pageSize, toProduct=product_response()))
         return jsonify_page(success.data.data, success.data.after, Product), 200
 
 # Use 'identity' rather than 'id', because 'id' is a reserved keyword in Python.
@@ -62,12 +62,12 @@ def get_product(product_id: str):
     """Get the product with the given identity."""
     success: QuerySuccess = client.query(fql(
         "let product = Product.byId(${productId})\n${toProduct}",
-        productId=product_id, toProduct=to_product()))
+        productId=product_id, toProduct=product_response()))
     return jsonify(success.data)
 
 
 @products.route('/products', methods=['POST'])
-def new_product():
+def post_products():
     """
     Create a new product with the given POST data. The required parameters are name, description, price, stock, and category.
     :return: The newly created product.
@@ -76,37 +76,37 @@ def new_product():
 
 
 @products.route('/products/<order_id>', methods=['PATCH'])
-def products_by_id(order_id):
-    """Get the product with the given ID."""
+def patch_product(order_id):
+    """Update the product with the given ID."""
     return update_product(order_id)
 
 
 @orders.route('/orders/<order_id>', methods=['GET'])
-def order_by_id(order_id):
+def get_order(order_id):
     """Get the order with the given identity."""
     return get_order_by_id(order_id)
 
 
 @orders.route('/orders/<order_id>', methods=['PATCH'])
-def update_order_by_id(order_id: str):
+def patch_order(order_id: str):
     """Update an orders status, and optionally the payment method.
     The valid status transitions are defined in collections.fsl.
     """
     return update_order(order_id)
 
 @customers.route('/customers', methods=['POST'])
-def new_customer():
+def post_customers():
     return create_customer()
 
 
 @customers.route('/customers/<customer_id>/cart', methods=['POST'])
-def create_or_get_cart(customer_id: str):
+def get_customer_cart(customer_id: str):
     """Return the cart for a customer, or create one if it doesn't exist."""
     return get_or_create_cart(customer_id)
 
 
 @customers.route('/customers/<customer_id>/cart/item', methods=['POST'])
-def add_to_cart(customer_id: str):
+def post_customer_cart_item(customer_id: str):
     """Add an item to the customers cart."""
     return add_item_to_cart(customer_id)
 
@@ -126,7 +126,7 @@ def get_customer(customer_id: str):
     try:
         success: QuerySuccess = client.query(fql(
             '${getCustomer}\n${checkNotNull}\n${customerResponse}',
-            getCustomer=customerQuery, customerResponse=customerResponse(),
+            getCustomer=customerQuery, customerResponse=customer_response(),
             checkNotNull=fql("if (customer == null) abort(${abortMsg})", abortMsg=abort_message)))
         return jsonify(Customer(**success.data))
     except AbortError as err:
@@ -135,7 +135,7 @@ def get_customer(customer_id: str):
 
 
 @customers.route('/customers/<customer_id>/orders', methods=['GET'])
-def get_customer_orders_route(customer_id: str):
+def get_customer_orders(customer_id: str):
     """List all the orders for a customer."""
     nextToken = request.args.get("nextToken")
     pageSize = request.args.get('pageSize', default=10, type=int)

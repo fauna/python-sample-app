@@ -54,19 +54,16 @@ To run the app, you'll need:
 - A [Fauna account](https://dashboard.fauna.com/register). You can sign up for a
   free account at https://dashboard.fauna.com/register.
 
-- Python 3.9 or later 
+- Python 3.9 or later.
 
-- [Fauna CLI](https://docs.fauna.com/fauna/current/tools/shell/) v3.0.0 or later.
+- [Fauna CLI v4 beta](https://docs.fauna.com/fauna/current/build/cli/v4/) or later.
+    - [Node.js](https://nodejs.org/en/download/) v20.x or later.
 
   To install the CLI, run:
 
     ```sh
-    npm install -g fauna-shell@latest
+    npm install -g fauna-shell@">=4.0.0-beta"
     ```
-
-You should also be familiar with basic Fauna CLI commands and usage. For an
-overview, see the [Fauna CLI
-docs](https://docs.fauna.com/fauna/current/tools/shell/).
 
 ## Setup
 
@@ -84,79 +81,72 @@ docs](https://docs.fauna.com/fauna/current/tools/shell/).
    pip install -r requirements.txt
    ```
 
-3. Log in to Fauna using the Fauna CLI:
+3. If you haven't already, log in to Fauna using the Fauna CLI:
 
     ```sh
-    fauna cloud-login
+    fauna login
     ```
-
-   When prompted, enter:
-
-    * **Endpoint name:** `cloud` (Press Enter)
-    * **Email address:** The email address for your Fauna account.
-    * **Password:** The password for your Fauna account.
-    * **Which endpoint would you like to set as default?** The `cloud-*`
-      endpoint for your preferred region group. For example, to use the US
-      region group, use `cloud-us`.
-
-   The command requires an email and password login. If you log in to Fauna
-   using GitHub or Netlify, you can enable email and password login using the
-   [Forgot Password](https://dashboard.fauna.com/forgot-password) workflow.
 
 4. Use the Fauna CLI to create the `ECommercePython` database:
 
     ```sh
-    fauna create-database ECommercePython
+    # Replace 'us' with your preferred Region Group:
+    # 'us' (United States), 'eu' (Europe), or `global` (available to Pro accounts and above).
+    fauna database create \
+      --name ECommercePython \
+      --database us
     ```
 
-5. Create a
-   [`.fauna-project`](https://docs.fauna.com/fauna/current/tools/shell/#proj-config)
-   config file for the project:
-
-   ```sh
-   fauna project init
-   ```
-
-   When prompted, enter:
-
-    * `schema` as the schema directory.
-    * `dev` as the environment name.
-    * The default endpoint.
-    * `ECommercePython` as the database.
-
-6.  Push the `.fsl` files in the `schema` directory to the `ECommercePython`
+5.  Push the `.fsl` files in the `schema` directory to the `ECommercePython`
     database:
 
     ```sh
-    fauna schema push
+    # Replace 'us' with your Region Group.
+    fauna schema push \
+      --database us/ECommercePython
     ```
 
     When prompted, accept and stage the schema.
 
-7.  Check the status of the staged schema:
+6.  Check the status of the staged schema:
 
     ```sh
-    fauna schema status
+    fauna schema status \
+      --database us/ECommercePython
     ```
 
-8.  When the status is `ready`, commit the staged schema to the database:
+7.  When the status is `ready`, commit the staged schema to the database:
 
     ```sh
-    fauna schema commit
+    fauna schema commit \
+      --database us/ECommercePython
     ```
 
     The commit applies the staged schema to the database. The commit creates the
     collections and user-defined functions (UDFs) defined in the `.fsl` files of the
     `schema` directory.
 
-9. Create a key with the `server` role for the `ECommercePython` database:
+8. Create a key with the `server` role for the `ECommercePython` database:
 
     ```sh
-    fauna create-key --environment='' ECommercePython server
+    fauna query "Key.create({ role: 'server' })" \
+      --database us/ECommercePython
     ```
 
    Copy the returned `secret`. The app can use the key's secret to authenticate
    requests to the database.
+
+## Add sample data
+
+The app includes a seed script that adds sample documents to the
+`ECommercePython` database. From the root directory, run:
+
+```sh
+FAUNA_SECRET=<secret> ./scripts/seed.sh
+```
+
+You can view documents created by the script in the [Fauna
+Dashboard](https://dashboard.fauna.com/).
 
 ## Run the app
 
@@ -171,8 +161,6 @@ Once started, the local server is available at http://localhost:5000
 
 ## Make HTTP API requests
 
-```
-
 You can use the endpoints to make API requests that read and write data from
 the `ECommercePython` database.
 
@@ -180,6 +168,7 @@ For example, with the local server running in a separate terminal tab, run the
 following curl request to the `POST /customers` endpoint. The request creates a
 `Customer` collection document in the `ECommercePython` database.
 
+```sh
 curl -v \
   http://localhost:5000/customers \
   -H "Content-Type: application/json" \
@@ -193,26 +182,141 @@ curl -v \
       "postalCode": "20220",
       "country": "USA"
     }
-  }'
+  }' | jq .
 ```
 
 You can view the documents for the collection in the [Fauna
 Dashboard](https://dashboard.fauna.com/).
+
+## Expand the app
+
+You can further expand the app by adding fields and endpoints.
+
+As an example, the following steps adds a computed `totalPurchaseAmt` field to
+Customer documents and related API responses:
+
+1. Navigate to the project's root directory:
+
+    ```sh
+    cd ..
+    ```
+
+    If the app server is running, stop the server by pressing Ctrl+C.
+
+2. If you haven't already, add the sample data:
+
+    ```sh
+    FAUNA_SECRET=<secret> ./scripts/seed.sh
+    ```
+
+3. In `schema/collections.fsl`, add the following `totalPurchaseAmt` computed
+   field definition to the `Customer` collection:
+
+    ```diff
+    collection Customer {
+      ...
+      // Use a computed field to get the set of Orders for a customer.
+      compute orders: Set<Order> = (customer => Order.byCustomer(customer))
+
+    + // Use a computed field to calculate the customer's cumulative purchase total.
+    + // The field sums purchase `total` values from the customer's linked Order documents.
+    + compute totalPurchaseAmt: Number = (customer => customer.orders.fold(0, (sum, order) => {
+    +   let order: Any = order
+    +   sum + order.total
+    + }))
+      ...
+    }
+    ...
+    ```
+
+   Save `schema/collections.fsl`.
+
+4.  Push the updated `.fsl` files in the `schema` directory to the `ECommercePython`
+    database to stage the changes:
+
+    ```sh
+    fauna schema push \
+      --database us/ECommercePython
+    ```
+
+    When prompted, accept and stage the schema.
+
+5.  Check the status of the staged schema:
+
+    ```sh
+    fauna schema status \
+      --database us/ECommercePython
+    ```
+
+6.  When the status is `ready`, commit the staged schema changes to the
+    database:
+
+    ```sh
+    fauna schema commit \
+      --database us/ECommercePython
+    ```
+
+7. In `ecommerce_app/models/customer.py`, add the `totalPurchaseAmt` field to
+   the `Customer` class and `customerResponse()` method:
+
+    ```diff
+    @dataclass
+    class Customer:
+        id: str
+        name: str
+        email: str
+        address: Address
+        cart: Optional[Order]
+    +   totalPurchaseAmt: int
+
+
+    def customerResponse() -> Query:
+    +    return fql("{id: customer.id, name: customer?.name, email: customer?.email, address: customer?.address, cart: ${getCart}, totalPurchaseAmt: customer?.totalPurchaseAmt}",
+                  getCart=fql('if (customer?.cart != null) {id: customer?.cart?.id} else null'))
+    ```
+
+    Save `src/routes/customers/customers.controller.ts`.
+
+    Customer-related endpoints use this template to project Customer
+    document fields in responses.
+
+7. Start the app server:
+
+    ```sh
+    cd ecommerce_app
+    FAUNA_SECRET=<secret> python3 -m flask run
+    ```
+
+8.  With the local server running in a separate terminal tab, run the
+    following curl request to the `POST /customers` endpoint:
+
+    ```sh
+    curl -v http://localhost:5000/customers/999 | jq .
+    ```
+
+    The response includes the computed `totalPurchaseAmt` field:
+
+    ```json
+    {
+      "address": {
+        "city": "Amsterdam",
+        "country": "Netherlands",
+        "postalCode": "1015BT",
+        "state": "North Holland",
+        "street": "Herengracht"
+      },
+      "cart": {
+        "id": "417802633891286089"
+      },
+      "email": "fake@fauna.com",
+      "id": "999",
+      "name": "Valued Customer",
+      "totalPurchaseAmt": 36000
+    }
+    ```
 
 ## Run unit tests
 Some example unit tests in the `tests/` directory show how you can test a Python Flask app that uses Fauna.
 ```sh
 python3 -m unittest discover -s tests
 ```
-
-## Seed some data
-If you want to seed some data in your app, you can do the following (also see `scripts/setup.sh`):
-
-```sh
-fauna import --collection Category --path seed/categories.json
-fauna import --collection Customer --path seed/customers.json
-fauna eval --file seed/products.fql
-fauna eval --file seed/orders.fql
-```
-
-If you've seeded the DB, then you can run `source scripts/smoke_test.sh`
