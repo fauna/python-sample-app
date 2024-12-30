@@ -142,7 +142,6 @@ The app includes a seed script that adds sample documents to the
 `ECommercePython` database. From the root directory, run:
 
 ```sh
-chmod +x ./scripts/seed.sh
 FAUNA_SECRET=<secret> ./scripts/seed.sh
 ```
 
