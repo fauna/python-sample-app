@@ -56,32 +56,27 @@ def update_product(product_id):
     extract_field('name', fields, data)
     extract_field('price', fields, data, int)
     extract_field('description', fields, data)
-    extract_field('stock', fields, data)
+    extract_field('stock', fields, data, int)
     category_name = data.get('category')
 
     if not fields and not category_name:
         return jsonify({'message': 'At least one field must be updated.'}), 400
 
-    # Construct the query to update the product in Fauna
+    # Construct the query to update the product in Fauna.
+    # There are potentially two `product.update` statements, but it's performant since it all runs in
+    # one query and is executed as a single transaction server-side.
+    update_category = fql('''
+        let cat = Category.byName(${categoryName}).first()
+        if (cat == null) abort("Category does not exist.")
+        product.update({category: cat})''', categoryName=category_name) if category_name else fql('')
     query = fql(
         '''
         let product = Product.byId(${id})!
-        let fields = ${fields}
-        
-        if (${category_name} != null) {
-            let cat = Category.byName(${category_name}).first()
-            if (cat == null) abort("Category does not exist.")
-            product.update({category: cat})
-        }
-
-        product.update(fields)
+        ${category}
+        product.update(${fields})
         ${toProduct}
         ''',
-        id=product_id,
-        fields=fields,
-        toProduct=to_product(),
-        category_name=category_name,
-    )
+        id=product_id, fields=fields, toProduct=to_product(), category=update_category)
 
     # Execute the query
     success: QuerySuccess = client.query(query)
