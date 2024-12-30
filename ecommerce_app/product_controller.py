@@ -5,7 +5,7 @@ from fauna import fql
 from fauna.client import Client
 from fauna.encoding import QuerySuccess
 
-from ecommerce_app.models.product import to_product
+from ecommerce_app.models.product import product_response
 
 # Initialize Fauna client
 client = Client()
@@ -41,7 +41,7 @@ def create_product():
         let product = Product.create({name: fields.name, price: fields.price, category: category, stock: fields.stock, description: fields.description})
         ${toProduct}
         ''',
-        fields=fields, toProduct=to_product()
+        fields=fields, toProduct=product_response()
     )
     # Execute the query
     res: QuerySuccess = client.query(query)
@@ -76,7 +76,7 @@ def update_product(product_id):
         product.update(${fields})
         ${toProduct}
         ''',
-        id=product_id, fields=fields, toProduct=to_product(), category=update_category)
+        id=product_id, fields=fields, toProduct=product_response(), category=update_category)
 
     # Execute the query
     success: QuerySuccess = client.query(query)

@@ -7,7 +7,7 @@ from fauna.errors import FaunaException
 from fauna.encoding import QuerySuccess
 import urllib.parse
 
-from ecommerce_app.models.customer import Address, customerResponse
+from ecommerce_app.models.customer import Address, customer_response
 from ecommerce_app.models.order import order_response
 
 # Initialize Fauna client
@@ -26,7 +26,7 @@ def create_customer():
         diff = set([field.name for field in dataclasses.fields(Address)]) - set(customer_data['address'].keys())
         return jsonify({'message': f'Missing required field(s) {diff}'})
     success = client.query(fql('let customer = Customer.create(${newCustomer})\n${customerResponse}',
-                               newCustomer=customer_data, customerResponse=customerResponse()))
+                               newCustomer=customer_data, customerResponse=customer_response()))
     return jsonify(success.data), 201
 
 

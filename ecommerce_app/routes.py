@@ -7,9 +7,9 @@ from fauna.errors import AbortError
 from flask import Blueprint, jsonify, request, Response
 
 from ecommerce_app.customer_controller import add_item_to_cart, get_or_create_cart, create_customer
-from ecommerce_app.models.customer import Customer, customerResponse
+from ecommerce_app.models.customer import Customer, customer_response
 from ecommerce_app.models.order import Order, order_summary
-from ecommerce_app.models.product import Product, to_product
+from ecommerce_app.models.product import Product, product_response
 from ecommerce_app.order_controller import get_order_by_id, update_order
 from ecommerce_app.product_controller import create_product, update_product
 
@@ -39,7 +39,7 @@ def get_products():
     if nextToken:
         success: QuerySuccess = client.query(fql(
             "Set.paginate(${nextToken}).map(product => ${toProduct}",
-            nextToken=nextToken, toProduct=to_product()))
+            nextToken=nextToken, toProduct=product_response()))
         # Data is a dict not a page here.
         return jsonify_page(success.data['data'], success.data['after'], Product), 200
     elif category:
@@ -47,12 +47,12 @@ def get_products():
         success: QuerySuccess = client.query(fql(
             "Product.byCategory(${category}).pageSize(${pageSize}).map(product => ${toProduct})",
             category=categoryQuery,
-            pageSize=pageSize, toProduct=to_product()))
+            pageSize=pageSize, toProduct=product_response()))
         return jsonify_page(success.data.data, success.data.after, Product), 200
     else:
         success: QuerySuccess = client.query(fql(
             "Product.sortedByCategory().pageSize(${pageSize}).map(product => ${toProduct})",
-            pageSize=pageSize, toProduct=to_product()))
+            pageSize=pageSize, toProduct=product_response()))
         return jsonify_page(success.data.data, success.data.after, Product), 200
 
 # Use 'identity' rather than 'id', because 'id' is a reserved keyword in Python.
@@ -62,7 +62,7 @@ def get_product(product_id: str):
     """Get the product with the given identity."""
     success: QuerySuccess = client.query(fql(
         "let product = Product.byId(${productId})\n${toProduct}",
-        productId=product_id, toProduct=to_product()))
+        productId=product_id, toProduct=product_response()))
     return jsonify(success.data)
 
 
@@ -126,7 +126,7 @@ def get_customer(customer_id: str):
     try:
         success: QuerySuccess = client.query(fql(
             '${getCustomer}\n${checkNotNull}\n${customerResponse}',
-            getCustomer=customerQuery, customerResponse=customerResponse(),
+            getCustomer=customerQuery, customerResponse=customer_response(),
             checkNotNull=fql("if (customer == null) abort(${abortMsg})", abortMsg=abort_message)))
         return jsonify(Customer(**success.data))
     except AbortError as err:
